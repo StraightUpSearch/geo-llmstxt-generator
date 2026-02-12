@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>llms.txt Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #6366F1;
+      --primary-dark: #4F46E5;
+      --primary-light: #A5B4FC;
+      --primary-glow: rgba(99, 102, 241, 0.15);
+      --bg: #F8FAFC;
+      --surface: #FFFFFF;
+      --surface-hover: #F1F5F9;
+      --text: #0F172A;
+      --text-secondary: #64748B;
+      --text-tertiary: #94A3B8;
+      --border: #E2E8F0;
+      --border-light: #F1F5F9;
+      --success: #10B981;
+      --success-bg: #ECFDF5;
+      --warning: #F59E0B;
+      --warning-bg: #FFFBEB;
+      --error: #EF4444;
+      --error-bg: #FEF2F2;
+      --code-bg: #1E293B;
+      --code-text: #E2E8F0;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+      --transition: 150ms ease;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      background: var(--primary-glow);
+      color: var(--primary-dark);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 100px;
+      margin-bottom: 1rem;
+    }
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+    }
+    .header h1 span { color: var(--primary); }
+    .header p {
+      color: var(--text-secondary);
+      font-size: 1.0625rem;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Input section */
+    .input-row {
+      display: flex;
+      gap: 0.75rem;
+    }
+    .input-row input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color var(--transition);
+      outline: none;
+      background: var(--surface);
+    }
+    .input-row input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .input-row input::placeholder { color: var(--text-tertiary); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--surface-hover); }
+
+    /* Options */
+    .options-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      margin-top: 1rem;
+      padding: 0;
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: color var(--transition);
+    }
+    .options-toggle:hover { color: var(--text); }
+    .options-toggle svg { transition: transform var(--transition); }
+    .options-toggle.open svg { transform: rotate(180deg); }
+
+    .options-panel {
+      display: none;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-light);
+    }
+    .options-panel.show { display: block; }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 600px) { .options-grid { grid-template-columns: 1fr; } }
+
+    .field label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 0.375rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .field select, .field input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .field select:focus, .field input:focus {
+      border-color: var(--primary);
+    }
+    .field .hint {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      margin-top: 0.25rem;
+    }
+    .field-full { grid-column: 1 / -1; }
+
+    /* Progress */
+    .progress-section { display: none; }
+    .progress-section.show { display: block; }
+
+    .progress-bar-track {
+      height: 6px;
+      background: var(--border-light);
+      border-radius: 100px;
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      border-radius: 100px;
+      width: 0%;
+      transition: width 400ms ease;
+    }
+
+    .steps { display: flex; flex-direction: column; gap: 0.5rem; }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      font-size: 0.875rem;
+      color: var(--text-tertiary);
+      transition: color var(--transition);
+    }
+    .step.active { color: var(--primary-dark); font-weight: 500; }
+    .step.done { color: var(--success); }
+    .step.error { color: var(--error); }
+
+    .step-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--primary-light);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    /* Output section */
+    .output-section { display: none; }
+    .output-section.show { display: block; }
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 0;
+    }
+    .tab {
+      padding: 0.625rem 1.25rem;
+      border: none;
+      background: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      font-family: inherit;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all var(--transition);
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active {
+      color: var(--primary-dark);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .code-block {
+      background: var(--code-bg);
+      color: var(--code-text);
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .code-block .h1 { color: #93C5FD; font-weight: 700; }
+    .code-block .h2 { color: #A78BFA; font-weight: 600; }
+    .code-block .blockquote { color: #FCD34D; }
+    .code-block .link { color: #6EE7B7; }
+    .code-block .link-url { color: #67E8F9; }
+
+    .explainer-content {
+      padding: 1.5rem;
+      font-size: 0.9375rem;
+      line-height: 1.8;
+      color: var(--text);
+    }
+    .explainer-content p { margin-bottom: 1rem; }
+    .explainer-content p:last-child { margin-bottom: 0; }
+
+    .validation-list {
+      padding: 1rem 1.5rem;
+      list-style: none;
+    }
+    .validation-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.625rem;
+      padding: 0.5rem 0;
+      font-size: 0.875rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .validation-item:last-child { border-bottom: none; }
+    .validation-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+    .validation-rule { font-weight: 600; min-width: 160px; color: var(--text); }
+    .validation-msg { color: var(--text-secondary); }
+
+    /* Action bar */
+    .action-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 0;
+      flex-wrap: wrap;
+    }
+    .action-bar .spacer { flex: 1; }
+
+    /* Stats */
+    .stats-bar {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      padding: 0.75rem 1.25rem;
+      background: var(--surface-hover);
+      border-radius: var(--radius-sm);
+      margin-top: 0.5rem;
+    }
+    .stat {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+    }
+    .stat strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .stat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.125rem 0.5rem;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .stat-badge.pass { background: var(--success-bg); color: var(--success); }
+    .stat-badge.warn { background: var(--warning-bg); color: var(--warning); }
+    .stat-badge.fail { background: var(--error-bg); color: var(--error); }
+
+    /* Existing llms.txt notice */
+    .notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.875rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+    .notice-info {
+      background: var(--primary-glow);
+      color: var(--primary-dark);
+      border: 1px solid rgba(99,102,241,0.2);
+    }
+    .notice-warn {
+      background: var(--warning-bg);
+      color: #92400E;
+      border: 1px solid rgba(245,158,11,0.2);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--code-bg);
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      transition: transform 300ms ease;
+      z-index: 100;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-tertiary);
+      font-size: 0.8125rem;
+    }
+    .footer a { color: var(--primary); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+      GEO Optimised
+    </div>
+    <h1><span>/llms.txt</span> Generator</h1>
+    <p>Crawl any site and generate an AI-ready llms.txt file in seconds</p>
+  </div>
+
+  <!-- Input -->
+  <div class="card" id="inputCard">
+    <div class="input-row">
+      <input type="url" id="urlInput" placeholder="https://example.com" autocomplete="url" spellcheck="false" />
+      <button class="btn btn-primary" id="generateBtn" onclick="startGeneration()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Generate
+      </button>
+    </div>
+
+    <button class="options-toggle" id="optionsToggle" onclick="toggleOptions()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      Advanced options
+    </button>
+
+    <div class="options-panel" id="optionsPanel">
+      <div class="options-grid">
+        <div class="field">
+          <label>Tone</label>
+          <select id="toneSelect">
+            <option value="open">Open (discovery-friendly)</option>
+            <option value="defensive">Defensive (brand-safe)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Focus</label>
+          <select id="focusSelect">
+            <option value="auto">Auto-detect</option>
+            <option value="SaaS / Software">SaaS / API Docs</option>
+            <option value="E-commerce">E-commerce</option>
+            <option value="Professional Services">Professional Services</option>
+            <option value="Publisher / Blog">Publisher / Blog</option>
+            <option value="Corporate / Enterprise">Corporate / Enterprise</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Max Pages</label>
+          <select id="maxPagesSelect">
+            <option value="20">Shallow (up to 20)</option>
+            <option value="50" selected>Standard (up to 50)</option>
+            <option value="100">Deep (up to 100)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>API Key</label>
+          <input type="password" id="apiKeyInput" placeholder="sk-ant-..." />
+          <div class="hint">Anthropic key for AI-enhanced output. Optional if set on server.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="card progress-section" id="progressSection">
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <div class="steps" id="stepsList">
+      <div class="step" data-step="checking">
+        <div class="step-icon" id="icon-checking"></div>
+        <span>Checking for existing llms.txt</span>
+      </div>
+      <div class="step" data-step="sitemap">
+        <div class="step-icon" id="icon-sitemap"></div>
+        <span>Parsing robots.txt &amp; sitemap</span>
+      </div>
+      <div class="step" data-step="crawling">
+        <div class="step-icon" id="icon-crawling"></div>
+        <span>Crawling pages</span>
+      </div>
+      <div class="step" data-step="analysing">
+        <div class="step-icon" id="icon-analysing"></div>
+        <span>Analysing site structure</span>
+      </div>
+      <div class="step" data-step="generating">
+        <div class="step-icon" id="icon-generating"></div>
+        <span>Generating llms.txt</span>
+      </div>
+      <div class="step" data-step="explainer">
+        <div class="step-icon" id="icon-explainer"></div>
+        <span>Writing GEO strategy explainer</span>
+      </div>
+      <div class="step" data-step="validating">
+        <div class="step-icon" id="icon-validating"></div>
+        <span>Validating output</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Output -->
+  <div class="output-section" id="outputSection">
+
+    <div id="existingNotice" class="notice notice-info" style="display:none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>This domain already has an llms.txt file. The output below is a newly generated version.</span>
+    </div>
+
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('output')">llms.txt</button>
+        <button class="tab" onclick="switchTab('explainer')">GEO Explainer</button>
+        <button class="tab" onclick="switchTab('validation')">Validation</button>
+      </div>
+
+      <div class="tab-panel active" id="panel-output">
+        <div class="code-block" id="codeOutput"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-explainer">
+        <div class="explainer-content" id="explainerContent"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-validation">
+        <ul class="validation-list" id="validationList"></ul>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn btn-secondary" onclick="copyToClipboard()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy to Clipboard
+      </button>
+      <button class="btn btn-secondary" onclick="downloadFile()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download llms.txt
+      </button>
+      <div class="spacer"></div>
+      <div id="statsBar" class="stats-bar" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Built for <a href="https://llmstxt.org" target="_blank" rel="noopener">llmstxt.org</a> spec compliance &mdash;
+    Generative Engine Optimisation for the AI era
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // State
+  let generatedContent = '';
+  let isGenerating = false;
+
+  const STEP_ORDER = ['checking', 'sitemap', 'crawling', 'analysing', 'generating', 'explainer', 'validating'];
+
+  const CHECK_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  const ERROR_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  const CIRCLE_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4" opacity="0.3"/></svg>';
+
+  // Enter key triggers generate
+  document.getElementById('urlInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') startGeneration();
+  });
+
+  function toggleOptions() {
+    const panel = document.getElementById('optionsPanel');
+    const toggle = document.getElementById('optionsToggle');
+    panel.classList.toggle('show');
+    toggle.classList.toggle('open');
+  }
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+    document.getElementById(`panel-${tabId}`).classList.add('active');
+  }
+
+  function resetProgress() {
+    document.getElementById('progressFill').style.width = '0%';
+    STEP_ORDER.forEach(step => {
+      const el = document.querySelector(`[data-step="${step}"]`);
+      el.className = 'step';
+      document.getElementById(`icon-${step}`).innerHTML = CIRCLE_SVG;
+    });
+  }
+
+  function updateStep(stepName, state, message) {
+    const el = document.querySelector(`[data-step="${stepName}"]`);
+    if (!el) return;
+
+    el.className = `step ${state}`;
+    const icon = document.getElementById(`icon-${stepName}`);
+
+    if (state === 'active') {
+      icon.innerHTML = '<div class="spinner"></div>';
+    } else if (state === 'done') {
+      icon.innerHTML = CHECK_SVG;
+    } else if (state === 'error') {
+      icon.innerHTML = ERROR_SVG;
+    }
+
+    if (message) {
+      el.querySelector('span').textContent = message;
+    }
+  }
+
+  async function startGeneration() {
+    if (isGenerating) return;
+
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) {
+      showToast('Please enter a URL');
+      document.getElementById('urlInput').focus();
+      return;
+    }
+
+    isGenerating = true;
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;"></div> Generating...';
+
+    // Show progress, hide output
+    document.getElementById('progressSection').classList.add('show');
+    document.getElementById('outputSection').classList.remove('show');
+    resetProgress();
+
+    const body = {
+      url: url,
+      tone: document.getElementById('toneSelect').value,
+      focus: document.getElementById('focusSelect').value,
+      maxPages: parseInt(document.getElementById('maxPagesSelect').value),
+      apiKey: document.getElementById('apiKeyInput').value.trim(),
+    };
+
+    let completedSteps = new Set();
+
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const jsonStr = line.slice(6);
+          if (!jsonStr) continue;
+
+          let event;
+          try { event = JSON.parse(jsonStr); } catch { continue; }
+
+          // Update progress bar
+          if (event.progress !== undefined) {
+            document.getElementById('progressFill').style.width = event.progress + '%';
+          }
+
+          if (event.step === 'error') {
+            // Mark current active step as error
+            STEP_ORDER.forEach(s => {
+              const el = document.querySelector(`[data-step="${s}"]`);
+              if (el.classList.contains('active')) updateStep(s, 'error', event.message);
+            });
+            showToast('Generation failed: ' + event.message);
+            break;
+          }
+
+          if (event.step === 'complete') {
+            // Mark all remaining steps as done
+            STEP_ORDER.forEach(s => {
+              if (!completedSteps.has(s)) updateStep(s, 'done');
+            });
+            renderOutput(event.data);
+            break;
+          }
+
+          // Mark previous steps as done, current as active
+          const stepIdx = STEP_ORDER.indexOf(event.step);
+          if (stepIdx >= 0) {
+            STEP_ORDER.forEach((s, i) => {
+              if (i < stepIdx && !completedSteps.has(s)) {
+                updateStep(s, 'done');
+                completedSteps.add(s);
+              }
+            });
+            updateStep(event.step, 'active', event.message);
+          }
+        }
+      }
+    } catch (err) {
+      showToast('Network error: ' + err.message);
+    }
+
+    isGenerating = false;
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Generate';
+  }
+
+  function renderOutput(data) {
+    generatedContent = data.llms_txt;
+
+    // Syntax-highlighted code output
+    document.getElementById('codeOutput').innerHTML = highlightLlmsTxt(data.llms_txt);
+
+    // Explainer
+    const explainerEl = document.getElementById('explainerContent');
+    const paragraphs = data.explainer.split('\n\n').filter(p => p.trim());
+    explainerEl.innerHTML = paragraphs.map(p => `<p>${escapeHtml(p.trim())}</p>`).join('');
+
+    // Validation
+    const valList = document.getElementById('validationList');
+    valList.innerHTML = data.validation.checks.map(check => `
+      <li class="validation-item">
+        <span class="validation-icon">${check.passed ? '\u2705' : '\u274C'}</span>
+        <span class="validation-rule">${escapeHtml(check.rule)}</span>
+        <span class="validation-msg">${escapeHtml(check.message)}</span>
+      </li>
+    `).join('');
+
+    // Stats bar
+    const statsEl = document.getElementById('statsBar');
+    const v = data.validation;
+    const badgeClass = v.is_valid ? 'pass' : 'fail';
+    const badgeText = v.is_valid ? 'Spec compliant' : 'Issues found';
+    const sizeKB = (v.file_size_bytes / 1024).toFixed(1);
+    statsEl.innerHTML = `
+      <span class="stat"><span class="stat-badge ${badgeClass}">${v.is_valid ? '\u2705' : '\u26A0\uFE0F'} ${badgeText}</span></span>
+      <span class="stat"><strong>${sizeKB}KB</strong> size</span>
+      <span class="stat"><strong>${v.link_count}</strong> links</span>
+      <span class="stat"><strong>${v.section_count}</strong> sections</span>
+      <span class="stat"><strong>${data.pages_crawled}</strong> pages crawled</span>
+    `;
+    statsEl.style.display = 'flex';
+
+    // Existing llms.txt notice
+    if (data.existing_llms_txt) {
+      document.getElementById('existingNotice').style.display = 'flex';
+    } else {
+      document.getElementById('existingNotice').style.display = 'none';
+    }
+
+    // Show output section
+    document.getElementById('outputSection').classList.add('show');
+    switchTab('output');
+
+    // Scroll to output
+    setTimeout(() => {
+      document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+  }
+
+  function highlightLlmsTxt(text) {
+    return escapeHtml(text).split('\n').map(line => {
+      if (line.startsWith('# ') && !line.startsWith('## ')) {
+        return `<span class="h1">${line}</span>`;
+      }
+      if (line.startsWith('## ')) {
+        return `<span class="h2">${line}</span>`;
+      }
+      if (line.startsWith('&gt; ')) {
+        return `<span class="blockquote">${line}</span>`;
+      }
+      if (line.startsWith('- [')) {
+        return line.replace(/^(- \[.+?\])(\(.+?\))(:?.*)$/, '<span class="link">$1</span><span class="link-url">$2</span>$3');
+      }
+      return line;
+    }).join('\n');
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
+  function copyToClipboard() {
+    if (!generatedContent) return;
+    navigator.clipboard.writeText(generatedContent).then(() => {
+      showToast('Copied to clipboard');
+    });
+  }
+
+  function downloadFile() {
+    if (!generatedContent) return;
+    const blob = new Blob([generatedContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'llms.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Downloaded llms.txt');
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+</script>
+
+</body>
+</html>
